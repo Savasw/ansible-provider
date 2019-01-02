@@ -327,19 +327,19 @@ class EcsInventory(object):
 
         # Inventory: Group by instance ID (always a group of 1)
         if self.group_by_instance_id:
-            self.push(self.inventory, instance.id, hostname)
+            self.push(self.inventory, instance.id, dest)
             if self.nested_groups:
                 self.push_group(self.inventory, 'instances', instance.id)
 
         # Inventory: Group by region
         if self.group_by_region:
-            self.push(self.inventory, region, hostname)
+            self.push(self.inventory, region, dest)
             if self.nested_groups:
                 self.push_group(self.inventory, 'regions', region)
 
         # Inventory: Group by availability zone
         if self.group_by_availability_zone:
-            self.push(self.inventory, instance.zone_id, hostname)
+            self.push(self.inventory, instance.zone_id, dest)
             if self.nested_groups:
                 if self.group_by_region:
                     self.push_group(self.inventory, region, instance.zone_id)
@@ -347,28 +347,28 @@ class EcsInventory(object):
 
         # Inventory: Group by Alicloud Machine Image ID
         if self.group_by_image_id:
-            self.push(self.inventory, instance.image_id, hostname)
+            self.push(self.inventory, instance.image_id, dest)
             if self.nested_groups:
                 self.push_group(self.inventory, 'images', instance.image_id)
 
         # Inventory: Group by instance type
         if self.group_by_instance_type:
             key = self.to_safe('type_' + instance.instance_type)
-            self.push(self.inventory, key, hostname)
+            self.push(self.inventory, key, dest)
             if self.nested_groups:
                 self.push_group(self.inventory, 'types', key)
 
         # Inventory: Group by VPC
         if self.group_by_vpc_id and instance.vpc_id:
             key = self.to_safe('vpc_id_' + instance.vpc_id)
-            self.push(self.inventory, key, hostname)
+            self.push(self.inventory, key, dest)
             if self.nested_groups:
                 self.push_group(self.inventory, 'vpcs', key)
 
         # Inventory: Group by vswitch
         if self.group_by_vswitch_id and instance.vswitch_id:
             key = self.to_safe('subnet_' + instance.vswitch_id)
-            self.push(self.inventory, key, hostname)
+            self.push(self.inventory, key, dest)
             if self.nested_groups:
                 self.push_group(self.inventory, 'subnets', key)
 
@@ -376,7 +376,7 @@ class EcsInventory(object):
         if self.group_by_security_group:
             for group in instance.security_group_ids:
                 key = self.to_safe("security_group_" + group)
-                self.push(self.inventory, key, hostname)
+                self.push(self.inventory, key, dest)
                 if self.nested_groups:
                     self.push_group(self.inventory, 'security_groups', key)
 
@@ -393,7 +393,7 @@ class EcsInventory(object):
                     if v:
                         key = self.to_safe("tag_" + k + "=" + v)
 
-                    self.push(self.inventory, key, hostname)
+                    self.push(self.inventory, key, dest)
                     if self.nested_groups:
                         self.push_group(self.inventory, 'tags', self.to_safe("tag_" + k))
                         if v:
@@ -401,7 +401,7 @@ class EcsInventory(object):
 
         # Global Tag: instances without tags
         if self.group_by_tag_none and len(instance.tags) == 0:
-            self.push(self.inventory, 'tag_none', hostname)
+            self.push(self.inventory, 'tag_none', dest)
             if self.nested_groups:
                 self.push_group(self.inventory, 'tags', 'tag_none')
 
