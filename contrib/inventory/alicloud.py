@@ -135,24 +135,28 @@ class EcsInventory(object):
         ecs_ini_path = os.path.expanduser(os.path.expandvars(os.environ.get('ALICLOUD_INI_PATH', ecs_default_ini_path)))
         config.read(ecs_ini_path)
 
+        access_key = ''
+        secret_key = ''
+        security_token = ''
         role_req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/')
-        #ram_role = os.environ.get('RAM_Role', None)
-        req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/' + role_req.text)
-        data = req.json()
+        if role_req.status_code != 404:
+            req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/' + role_req.text)
+            data = req.json()
+            access_key = data['AccessKeyId']
+            secret_key = data['AccessKeySecret']
+            security_token = data['SecurityToken']
+            # ram_role = os.environ.get('RAM_Role', None)
 
-        access_key = data['AccessKeyId']
         if not access_key:
             access_key = os.environ.get('ALICLOUD_ACCESS_KEY', os.environ.get('ALICLOUD_ACCESS_KEY_ID', None))
         if not access_key:
             access_key = self.get_option(config, 'credentials', 'alicloud_access_key')
 
-        secret_key = data['AccessKeySecret']
         if not secret_key:
             secret_key = os.environ.get('ALICLOUD_SECRET_KEY', os.environ.get('ALICLOUD_SECRET_ACCESS_KEY', None))
         if not secret_key:
             secret_key = self.get_option(config, 'credentials', 'alicloud_secret_key')
 
-        security_token = data['SecurityToken']
         if not security_token:
             security_token = os.environ.get('ALICLOUD_SECURITY_TOKEN', None)
         if not security_token:
@@ -426,8 +430,8 @@ class EcsInventory(object):
             if self.nested_groups:
                 self.push_group(self.inventory, 'tags', 'tag_none')
 
-        self.push(self.inventory, hostname, dest)
-        self.push_group(self.inventory, 'alicloud', hostname)
+        # self.push(self.inventory, hostname, dest)
+        # self.push_group(self.inventory, 'alicloud', hostname)
 
         self.inventory["_meta"]["hostvars"][hostname] = self.get_host_info_dict_from_instance(instance)
         self.inventory["_meta"]["hostvars"][hostname]['ansible_ssh_host'] = dest
