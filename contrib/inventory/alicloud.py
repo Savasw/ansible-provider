@@ -281,7 +281,16 @@ class EcsInventory(object):
         conn = connect_to_acs(footmark.ecs, region, **self.credentials)
 
         if self.ecs_instance_filters:
-            instances = conn.describe_instances(**self.ecs_instance_filters)
+            instances = []
+            page = 1
+            received_count = 0
+            page_size = self.ecs_instance_filters['page_size']
+            while page == 1 or received_count == page_size:
+                self.ecs_instance_filters['page_number'] = page
+                received_instances = conn.describe_instances(**self.ecs_instance_filters)
+                instances.extend(received_instances)
+                received_count = len(received_instances)
+                page += 1
         else:
             instances = conn.describe_instances()
 
