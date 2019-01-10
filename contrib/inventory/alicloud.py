@@ -134,32 +134,30 @@ class EcsInventory(object):
         ecs_ini_path = os.path.expanduser(os.path.expandvars(os.environ.get('ALICLOUD_INI_PATH', ecs_default_ini_path)))
         config.read(ecs_ini_path)
 
-        access_key = ''
-        secret_key = ''
-        security_token = ''
-        role_req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/')
-        if role_req.status_code == 200:
-            req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/' + role_req.text)
-            data = req.json()
-            access_key = data['AccessKeyId']
-            secret_key = data['AccessKeySecret']
-            security_token = data['SecurityToken']
-            # ram_role = os.environ.get('RAM_Role', None)
-
-        if not access_key:
-            access_key = os.environ.get('ALICLOUD_ACCESS_KEY', os.environ.get('ALICLOUD_ACCESS_KEY_ID', None))
+        access_key = os.environ.get('ALICLOUD_ACCESS_KEY', os.environ.get('ALICLOUD_ACCESS_KEY_ID', None))
         if not access_key:
             access_key = self.get_option(config, 'credentials', 'alicloud_access_key')
 
-        if not secret_key:
-            secret_key = os.environ.get('ALICLOUD_SECRET_KEY', os.environ.get('ALICLOUD_SECRET_ACCESS_KEY', None))
+        secret_key = os.environ.get('ALICLOUD_SECRET_KEY', os.environ.get('ALICLOUD_SECRET_ACCESS_KEY', None))
         if not secret_key:
             secret_key = self.get_option(config, 'credentials', 'alicloud_secret_key')
 
-        if not security_token:
-            security_token = os.environ.get('ALICLOUD_SECURITY_TOKEN', None)
+        security_token = os.environ.get('ALICLOUD_SECURITY_TOKEN', None)
         if not security_token:
             security_token = self.get_option(config, 'credentials', 'alicloud_security_token')
+
+        if not (access_key or secret_key or security_token):
+            try:
+                role_req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/')
+                if role_req.status_code == 200:
+                    req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/' + role_req.text)
+                    data = req.json()
+                    access_key = data['AccessKeyId']
+                    secret_key = data['AccessKeySecret']
+                    security_token = data['SecurityToken']
+                    # ram_role = os.environ.get('RAM_Role', None)
+            except requests.ConnectionError:
+                pass
 
         self.credentials = {
             'acs_access_key_id': access_key,
