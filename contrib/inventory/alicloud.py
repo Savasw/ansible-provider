@@ -138,7 +138,7 @@ class EcsInventory(object):
         secret_key = ''
         security_token = ''
         role_req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/')
-        if role_req.status_code != 404:
+        if role_req.status_code == 200:
             req = requests.get('http://100.100.100.200/latest/meta-data/Ram/security-credentials/' + role_req.text)
             data = req.json()
             access_key = data['AccessKeyId']
